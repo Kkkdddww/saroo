@@ -10,9 +10,9 @@ const sb: SupabaseClient | null = online
   ? createClient(url!, key!, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } })
   : null;
 
-/** 켜 둔 소셜 로그인 (Supabase 에서 켠 것만). 예: VITE_AUTH_PROVIDERS=kakao,google */
+/** 켜 둔 소셜 로그인 (Supabase 에서 켠 것만). 예: VITE_AUTH_PROVIDERS=kakao,google. 비워 두면 게스트로만 시작한다 */
 export type Provider = 'kakao' | 'google';
-export const providers: Provider[] = ((import.meta.env.VITE_AUTH_PROVIDERS as string | undefined) || 'kakao,google')
+export const providers: Provider[] = ((import.meta.env.VITE_AUTH_PROVIDERS as string | undefined) || '')
   .split(',').map(s => s.trim()).filter((s): s is Provider => s === 'kakao' || s === 'google');
 
 const MESSAGES: Record<string, string> = {

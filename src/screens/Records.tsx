@@ -31,7 +31,9 @@ export default function Records({ p, online, go, saveNickname, reset, focusName,
               <div className="note bad flat">게스트 계정이에요. 앱 데이터를 지우거나 기기를 바꾸면 계급이 사라져요.</div>
               {providers.includes('kakao') && <button className="btn kakao" onClick={() => onLink('kakao')}>카카오 계정 연결</button>}
               {providers.includes('google') && <button className="btn google" onClick={() => onLink('google')}>Google 계정 연결</button>}
-              <span className="muted xs">연결해도 지금 계급과 기록은 그대로예요.</span>
+              {providers.length > 0
+                ? <span className="muted xs">연결해도 지금 계급과 기록은 그대로예요.</span>
+                : <span className="muted xs">계정 연결은 준비 중이에요. 열리면 지금 계급과 기록을 그대로 옮길 수 있어요.</span>}
             </>}
           </div>
         )}

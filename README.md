@@ -48,7 +48,7 @@ anon 키는 브라우저에 공개되는 키다. 권한은 SQL의 RLS·함수 �
    - OAuth 동의 화면 → OAuth 클라이언트 ID(웹 애플리케이션)
    - 승인된 리디렉션 URI: `https://<프로젝트>.supabase.co/auth/v1/callback`
    - Supabase Google Provider에 Client ID·Secret 입력
-5. 켜지 않은 로그인은 버튼을 숨길 수 있다: `.env` 의 `VITE_AUTH_PROVIDERS=kakao` (배포할 때는 GitHub secret `VITE_AUTH_PROVIDERS` 에 같은 값. 비워 두면 둘 다 보인다)
+5. 켠 로그인만 버튼으로 보인다: `.env` 의 `VITE_AUTH_PROVIDERS=kakao,google` (배포할 때는 GitHub secret `VITE_AUTH_PROVIDERS` 에 같은 값을 넣고 다시 배포). 비워 두면 소셜 로그인 버튼 없이 게스트로만 시작한다
 
 ## 3. GitHub Pages 배포
 

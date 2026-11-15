@@ -89,11 +89,19 @@ export default function Onboarding(props: Props) {
         </header>
         <div className="ob-body left">
           <div className="ob-logo"><Sym size={44} /></div>
-          <h1 className="ob-title">계급과 기록을<br />계정에 남겨요</h1>
-          <p className="ob-text">로그인하면 휴대폰을 바꿔도 계급·휘장·랭킹 기록이 그대로 이어져요.</p>
+          {providers.length > 0 ? <>
+            <h1 className="ob-title">계급과 기록을<br />계정에 남겨요</h1>
+            <p className="ob-text">로그인하면 휴대폰을 바꿔도 계급·휘장·랭킹 기록이 그대로 이어져요.</p>
+          </> : <>
+            <h1 className="ob-title">게스트로<br />바로 시작해요</h1>
+            <p className="ob-text">로그인 없이 계급을 올리고 랭킹에 도전할 수 있어요.</p>
+          </>}
         </div>
         <div className="ob-foot">
-          {online ? <>
+          {online && providers.length === 0 ? <>
+            <button className="btn primary" disabled={busy} onClick={props.onGuest}>게스트로 시작하기</button>
+            <p className="ob-fine">기록은 이 기기에 남아요. 앱 데이터를 지우면 계급이 사라질 수 있어요.</p>
+          </> : online ? <>
             {providers.includes('kakao') && (
               <button className="btn kakao" disabled={busy} onClick={() => props.onProvider('kakao')}><KakaoIcon />카카오로 시작하기</button>
             )}

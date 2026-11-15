@@ -301,7 +301,7 @@ export default function App() {
 
   return (
     <div id="app">
-      {screen === 'home' && <Home p={p} online={online} guest={online && auth.kind === 'guest'} go={go} play={play} />}
+      {screen === 'home' && <Home p={p} online={online} guest={online && auth.kind === 'guest' && providers.length > 0} go={go} play={play} />}
       {screen === 'ranking' && <Ranking online={online} nickname={p.nickname} go={go} onRename={() => { setScreen('records'); setFocusName(true); }} />}
       {screen === 'exam' && <Exam p={p} go={go} play={play} />}
       {screen === 'records' && <Records p={p} online={online} auth={auth} providers={providers} onLink={link} onLogout={logout} go={go} saveNickname={saveNickname} focusName={focusName} reset={() => { store.reset(); setP(store.update(rollDay)); toast('기록을 지웠어요'); }} />}
