@@ -45,7 +45,7 @@ export default function App() {
   const toast = useCallback((t: string) => {
     setToastMsg(t);
     window.clearTimeout((toast as unknown as { t?: number }).t);
-    (toast as unknown as { t?: number }).t = window.setTimeout(() => setToastMsg(''), 2000);
+    (toast as unknown as { t?: number }).t = window.setTimeout(() => setToastMsg(''), 3500);
   }, []);
   const patch = (fn: (q: store.LocalProfile) => void) => setP(store.update(q => { rollDay(q); fn(q); }));
 

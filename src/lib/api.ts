@@ -6,8 +6,19 @@ const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 export const online = Boolean(url && key);
+/** 서버가 응답하지 않으면 15초 뒤 실패로 끝낸다 (버튼이 계속 눌린 채로 멈추지 않게) */
+const fetchWithTimeout: typeof fetch = (input, init) => {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 15000);
+  init?.signal?.addEventListener('abort', () => ctl.abort());
+  return fetch(input, { ...init, signal: ctl.signal }).finally(() => clearTimeout(timer));
+};
+
 const sb: SupabaseClient | null = online
-  ? createClient(url!, key!, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } })
+  ? createClient(url!, key!, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' },
+      global: { fetch: fetchWithTimeout },
+    })
   : null;
 
 /** 켜 둔 소셜 로그인 (Supabase 에서 켠 것만). 예: VITE_AUTH_PROVIDERS=kakao,google. 비워 두면 게스트로만 시작한다 */
@@ -31,6 +42,11 @@ const MESSAGES: Record<string, string> = {
   run_already_submitted: '이미 저장된 판이에요',
   not_signed_in: '로그인이 풀렸어요. 다시 로그인해 주세요',
   guest_failed: '게스트로 시작하지 못했어요. 잠시 뒤 다시 해 주세요',
+  anonymous_provider_disabled: '게스트 로그인이 꺼져 있어요 (Supabase에서 Anonymous sign-ins 켜기)',
+  signup_disabled: '새 가입이 꺼져 있어요 (Supabase에서 Allow new users to sign up 켜기)',
+  invalid_api_key: '서버 키가 맞지 않아요 (VITE_SUPABASE_ANON_KEY 확인)',
+  timeout: '서버가 응답하지 않아요. 잠시 뒤 다시 해 주세요',
+  network: '서버에 연결하지 못했어요 (인터넷 또는 VITE_SUPABASE_URL 확인)',
   oauth_failed: '로그인 창을 열지 못했어요',
   link_failed: '계정을 연결하지 못했어요',
   identity_taken: '그 계정은 이미 다른 기록에 연결돼 있어요',
@@ -62,7 +78,8 @@ export async function currentAuth(): Promise<AuthState> {
 
 export function onAuthChange(cb: (s: AuthState) => void): () => void {
   if (!sb) return () => {};
-  const { data } = sb.auth.onAuthStateChange((_e, session) => cb(toState(session?.user)));
+  // 콜백 안에서 바로 Supabase 를 다시 부르면 로그인이 끝나지 않을 수 있어 다음 틱으로 미룬다 (Supabase 권장)
+  const { data } = sb.auth.onAuthStateChange((_e, session) => { setTimeout(() => cb(toState(session?.user)), 0); });
   return () => data.subscription.unsubscribe();
 }
 
@@ -73,7 +90,16 @@ const backUrl = () => location.origin + location.pathname;
 export async function signInGuest() {
   if (!sb) return;
   const r = await sb.auth.signInAnonymously();
-  if (r.error) throw new ApiError('guest_failed');
+  if (r.error) {
+    const e = r.error as { code?: string; status?: number; name?: string; message?: string };
+    console.error('signInAnonymously', e);
+    const code = e.code && MESSAGES[e.code] ? e.code
+      : /api key/i.test(e.message || '') ? 'invalid_api_key'
+      : /abort/i.test(e.message || '') ? 'timeout'
+      : e.name === 'AuthRetryableFetchError' || !e.status ? 'network'
+      : 'guest_failed';
+    throw new ApiError(code);
+  }
 }
 
 /** 카카오·구글 로그인 (페이지가 그쪽으로 넘어갔다가 돌아온다) */
